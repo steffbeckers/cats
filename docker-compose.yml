@@ -2,7 +2,18 @@ version: "3.7"
 
 services:
   app:
-    image: registry.gitlab.com/steffbeckers/cats
+    image: registry.gitlab.com/steffbeckers/cats/app
+    networks:
+      - reverse-proxy_default
+      - default
+    deploy:
+      mode: replicated
+      replicas: 2
+    depends_on:
+      - rethinkdb
+      - api
+  api:
+    image: registry.gitlab.com/steffbeckers/cats/api
     networks:
       - reverse-proxy_default
       - default
@@ -14,7 +25,6 @@ services:
   rethinkdb:
     image: rethinkdb
     networks:
-      - reverse-proxy_default
       - default
     volumes:
       - /root/cats/rethinkdb/data:/data

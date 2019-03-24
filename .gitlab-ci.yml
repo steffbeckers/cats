@@ -17,8 +17,10 @@ before_script:
 build:
   stage: build
   script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE" .
-    - docker push "$CI_REGISTRY_IMAGE"
+    - docker build --pull -t "$CI_REGISTRY_IMAGE/api" ./api
+    - docker push "$CI_REGISTRY_IMAGE/api"
+    - docker build --pull -t "$CI_REGISTRY_IMAGE/app" .
+    - docker push "$CI_REGISTRY_IMAGE/app"
   only:
     - master
 

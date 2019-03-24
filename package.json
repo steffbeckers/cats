@@ -1,7 +1,9 @@
 {
-  "name": "cats",
+  "name": "cats-app",
   "version": "0.1.0",
   "private": true,
+  "author": "Steff Beckers",
+  "license": "UNLICENSED",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
