@@ -1,17 +1,12 @@
 <template>
   <div id="app">
-    <img id="cat" src="@/assets/cat.svg" alt="Cat">
+    <!-- Router outlet -->
+    <router-view></router-view>
   </div>
 </template>
 
-<style lang="scss" scoped>
-  img#cat {
-    max-width: 200px;
-  }
-</style>
-
 <script>
 export default {
-  name: 'app'
+  name: 'App'
 }
 </script>
