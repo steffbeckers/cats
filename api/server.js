@@ -11,7 +11,7 @@ const server = Hapi.server({
 // Routes
 server.route({
   method: "GET",
-  path: "/",
+  path: "/api/",
   handler: function(request, h) {
     return {
       started: new Date(server.info.started).toISOString()
@@ -21,7 +21,7 @@ server.route({
 
 server.route({
   method: "POST",
-  path: "/",
+  path: "/api/",
   handler: function(request, h) {
     request.logger.info(JSON.stringify(request.payload));
     
