@@ -1,0 +1,32 @@
+version: "3.7"
+
+services:
+  app:
+    image: registry.gitlab.com/steffbeckers/cats
+    networks:
+      - reverse-proxy_default
+      - default
+    deploy:
+      mode: replicated
+      replicas: 2
+    depends_on:
+      - rethinkdb
+  rethinkdb:
+    image: rethinkdb
+    networks:
+      - reverse-proxy_default
+      - default
+    volumes:
+      - /root/cats/rethinkdb/data:/data
+  ssh:
+    image: corbinu/ssh-server
+    networks:
+      - default
+    volumes:
+      - /root/.ssh/authorized_keys:/root/.ssh/authorized_keys:ro
+
+networks:
+  reverse-proxy_default:
+    external: true
+  default:
+    internal: true
