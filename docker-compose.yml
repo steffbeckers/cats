@@ -32,7 +32,7 @@ services:
     networks:
       - default
     volumes:
-      - /root/cats/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - /root/cats/redis:/usr/local/etc/redis
   rethinkdb:
     image: rethinkdb
     networks:
