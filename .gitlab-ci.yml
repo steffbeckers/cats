@@ -39,6 +39,6 @@ deploy:
     - ssh-keyscan -H dev.steffbeckers.eu >> ~/.ssh/known_hosts
   script:
     - scp -r ./docker-compose.yml root@dev.steffbeckers.eu:~/compositions/$CI_PROJECT_PATH/docker-compose.yml
-    - ssh root@dev.steffbeckers.eu "docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}; cd ~/compositions/$CI_PROJECT_PATH/; docker pull "$CI_REGISTRY_IMAGE/app"; docker pull "$CI_REGISTRY_IMAGE/api"; docker stack deploy --compose-file docker-compose.yml cats --with-registry-auth"
+    - ssh root@dev.steffbeckers.eu "docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}; cd ~/compositions/$CI_PROJECT_PATH/; docker pull "$CI_REGISTRY_IMAGE/app"; docker pull "$CI_REGISTRY_IMAGE/api"; docker stack deploy --with-registry-auth --compose-file docker-compose.yml cats"
   only:
     - master
