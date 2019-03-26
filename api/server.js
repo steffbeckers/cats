@@ -1,45 +1,156 @@
 "use strict";
 
-const Hapi = require("hapi");
+// Environment
+require('env2')('.env');
+
+// Hapi
+const hapi = require("hapi");
+
+// Logging
+const hapiPino = require("hapi-pino");
+
+// Auth
+const hapiAuthJWT2 = require("hapi-auth-jwt2");
+const JWT = require('jsonwebtoken');
+const aguid = require('aguid');
+
+// Auth - Redis connection
+const asyncRedis = require("async-redis");
+const redisClient = asyncRedis.createClient({
+  url: process.env.REDIS_URL
+});
+redisClient.on("error", function (err) {
+  console.log("Error " + err);
+});
+// Confirm we can access redis
+// redisClient.set('redis', 'working');
+// redisClient.get('redis', function (redisError, reply) {
+//   /* istanbul ignore if */
+//   if (redisError) {
+//     console.log(redisError);
+//   }
+
+//   console.log('redis is ' + reply);
+// });
+
+// Auth - Validation
+const validate = async function (decoded, request) {
+  console.log(">>> DECODED token:");
+  console.log(decoded);
+
+  let reply = await redisClient.get(decoded.id);
+
+  console.log('>>> REDIS reply:');
+  console.log(reply);
+
+  // Check if session is valid
+  let session;
+  if (reply) {
+    session = JSON.parse(reply);
+  }
+  else { // Unable to find session in redis ... reply is null
+    return { isValid: false };
+  }
+
+  return { isValid: session.valid === true };
+};
 
 // Create a server with a host and port
-const server = Hapi.server({
+const server = hapi.server({
   host: "0.0.0.0",
-  port: 80
-});
-
-// Routes
-server.route({
-  method: "GET",
-  path: "/",
-  handler: function(request, h) {
-    return {
-      started: new Date(server.info.started).toISOString()
-    };
-  }
-});
-
-server.route({
-  method: "POST",
-  path: "/",
-  handler: function(request, h) {
-    request.logger.info(JSON.stringify(request.payload));
-    
-    return true;
-  }
+  port: process.env.PORT || 80
 });
 
 async function init() {
   try {
     // Logger
     await server.register({
-      plugin: require("hapi-pino"),
+      plugin: hapiPino,
       options: {
         // prettyPrint: process.env.NODE_ENV !== 'production',
         prettyPrint: true,
         logEvents: ["response", "onPostStart"]
       }
     });
+
+    // Auth
+    await server.register(hapiAuthJWT2);
+    server.auth.strategy(
+      'jwt',
+      'jwt',
+      {
+        key: process.env.JWT_SECRET,
+        validate: validate,
+        verifyOptions: {
+          algorithms: ['HS256']
+        }
+      }
+    );
+    server.auth.default('jwt');
+
+    // Routes
+    server.route([
+      {
+        method: "GET", path: "/", config: { auth: false },
+        handler: function(request, reply) {
+          return {
+            started: new Date(server.info.started).toISOString()
+          };
+        }
+      },
+      {
+        method: ['GET','POST'], path: '/restricted', config: { auth: 'jwt' },
+        handler: function(request, reply) {
+          return 'You used a Token!';
+        }
+      },
+      {
+        method: ['GET','POST'], path: "/auth", config: { auth: false },
+        handler: async function(request, reply) {
+          // Create a new session
+          var session = {
+            valid: true, // This will be set to false when the person logs out
+            id: aguid(), // A random session id
+            exp: new Date().getTime() + 30 * 60 * 1000, // expires in 30 minutes time
+          }
+
+          // Add cat
+          if (request.payload && request.payload.cat) {
+            session.cat = request.payload.cat;
+          }
+
+          // Save session in Redis
+          await redisClient.set(session.id, JSON.stringify(session));
+
+          // Sign the session as a JWT
+          let token = JWT.sign(session, process.env.JWT_SECRET);
+
+          return { token: token, ...session };
+        }
+      },
+      {
+        method: ['GET','POST'], path: "/logout", config: { auth: 'jwt' },
+        handler: async function(request, reply) {
+          let jwt = request.headers.authorization.split(" ")[1];
+          let decoded = JWT.decode(jwt, process.env.JWT_SECRET);
+
+          let redisReply = await redisClient.get(decoded.id);
+
+          let session = JSON.parse(redisReply);
+          console.log('>>> SESSION:')
+          console.log(session);
+
+          // Update the session to no longer valid:
+          session.valid = false;
+          session.ended = new Date().getTime();
+
+          // Save session in Redis
+          await redisClient.set(session.id, JSON.stringify(session));
+
+          return 'You have been logged out!';
+        }
+      }
+    ]);
 
     // Start server
     await server.start();

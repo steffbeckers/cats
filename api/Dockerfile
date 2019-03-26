@@ -16,6 +16,6 @@ RUN npm install
 COPY . /app
 
 # Start nodemon server
-CMD NODE_ENV=production nodemon server/server.js
+CMD NODE_ENV=production nodemon server.js
 
 EXPOSE 80

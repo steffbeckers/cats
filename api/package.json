@@ -9,7 +9,14 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "aguid": "^2.0.0",
+    "async-redis": "^1.1.7",
     "hapi": "^17.8.1",
-    "hapi-pino": "^5.1.0"
+    "hapi-auth-jwt2": "^8.3.0",
+    "hapi-pino": "^5.1.0",
+    "jsonwebtoken": "^8.5.1"
+  },
+  "devDependencies": {
+    "env2": "^2.2.2"
   }
 }
