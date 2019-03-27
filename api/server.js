@@ -1,7 +1,11 @@
 "use strict";
 
 // Environment
-require('env2')('.env');
+if (process.env.NODE_ENV === "production") {
+  require("env2")(".env");
+} else {
+  require("env2")(".env." + process.env.NODE_ENV);
+}
 
 // Hapi
 const hapi = require("hapi");
@@ -11,8 +15,8 @@ const hapiPino = require("hapi-pino");
 
 // Auth
 const hapiAuthJWT2 = require("hapi-auth-jwt2");
-const JWT = require('jsonwebtoken');
-const aguid = require('aguid');
+const JWT = require("jsonwebtoken");
+const aguid = require("aguid");
 
 // Auth - Redis connection
 const asyncRedis = require("async-redis");
@@ -58,7 +62,12 @@ const validate = async function (decoded, request) {
 // Create a server with a host and port
 const server = hapi.server({
   host: "0.0.0.0",
-  port: process.env.PORT || 80
+  port: process.env.PORT || 80,
+  routes: {
+    cors: {
+      origin: ['*']
+    }
+  }
 });
 
 async function init() {
@@ -112,12 +121,7 @@ async function init() {
             valid: true, // This will be set to false when the person logs out
             id: aguid(), // A random session id
             exp: new Date().getTime() + 30 * 60 * 1000, // expires in 30 minutes time
-          }
-
-          // Add cat
-          if (request.payload && request.payload.cat) {
-            session.cat = request.payload.cat;
-          }
+          };
 
           // Save session in Redis
           await redisClient.set(session.id, JSON.stringify(session));

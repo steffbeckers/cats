@@ -1,10 +1,13 @@
 <template>
-  <img id="cat" src="@/assets/cat.svg" alt="Cat">
+  <div>
+    <h1>Let's play cat and mouse!</h1>
+    <p class="link" v-if="$store.state.cat && !$store.state.cat.name" @click="$router.push({ path: '/' + $store.state.cat.id })">What is your cat's name?</p>
+  </div>
 </template>
 
-<style lang="scss" scoped>
-img#cat {
-  max-width: 200px;
+<style>
+.link {
+  cursor: pointer
 }
 </style>
 

@@ -20,7 +20,7 @@ export default new Vuex.Store({
       // Set state
       state.authenticated = true
       state.token = credentials.token
-      state.cat = credentials.cat
+      state.cat = { id: credentials.id }
 
       // Save cat
       localStorage.setItem('cat', JSON.stringify(state.cat))

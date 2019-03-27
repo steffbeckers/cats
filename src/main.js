@@ -16,6 +16,10 @@ if (process.env.NODE_ENV === 'production') {
   })
 }
 
+// Guards
+// router.beforeEach((to, from, next) => {
+// })
+
 // Set Authorization header, if token exists
 var token = localStorage.getItem('token')
 if (token) {
