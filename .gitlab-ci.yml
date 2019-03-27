@@ -9,7 +9,7 @@ stages:
 
 before_script:
   - docker info
-  - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASSWORD" $REGISTRY
 
 
 # build stage
@@ -17,10 +17,10 @@ before_script:
 build:
   stage: build
   script:
-    - docker build --pull -t "$CI_REGISTRY_IMAGE/api" ./api
-    - docker push "$CI_REGISTRY_IMAGE/api"
-    - docker build --pull -t "$CI_REGISTRY_IMAGE/app" .
-    - docker push "$CI_REGISTRY_IMAGE/app"
+    - docker build --pull -t "$REGISTRY_IMAGE/api" ./api
+    - docker push "$REGISTRY_IMAGE/api"
+    - docker build --pull -t "$REGISTRY_IMAGE/app" .
+    - docker push "$REGISTRY_IMAGE/app"
   only:
     - master
 
@@ -38,7 +38,7 @@ deploy:
     - ssh-add ~/.ssh/id_rsa
     - ssh-keyscan -H dev.steffbeckers.eu >> ~/.ssh/known_hosts
   script:
-    - scp -r ./docker-compose.yml root@dev.steffbeckers.eu:~/compositions/$CI_PROJECT_PATH/docker-compose.yml
-    - ssh root@dev.steffbeckers.eu "docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}; cd ~/compositions/$CI_PROJECT_PATH/; docker pull "$CI_REGISTRY_IMAGE/app"; docker pull "$CI_REGISTRY_IMAGE/api"; docker stack deploy --with-registry-auth --compose-file docker-compose.yml cats"
+    - scp -r ./docker-compose.yml root@dev.steffbeckers.eu:~/compositions/$PROJECT_PATH/docker-compose.yml
+    - ssh root@dev.steffbeckers.eu "docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${REGISTRY}; cd ~/compositions/$PROJECT_PATH/; docker pull "$REGISTRY_IMAGE/app"; docker pull "$REGISTRY_IMAGE/api"; docker stack deploy --with-registry-auth --compose-file docker-compose.yml cats"
   only:
     - master

@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   app:
-    image: registry.gitlab.com/steffbeckers/cats/app
+    image: registry.steffbeckers.eu/steffbeckers/cats/app
     networks:
       - reverse-proxy_default
       - default
@@ -14,7 +14,7 @@ services:
       - redis
       - api
   api:
-    image: registry.gitlab.com/steffbeckers/cats/api
+    image: registry.steffbeckers.eu/steffbeckers/cats/api
     environment:
       - REDIS_URL=redis://redis/0
       - JWT_SECRET=470ffc3e5f229a043f5c849eb58d2849e6d11f9027f15ca54bf7d701a8c1a78f
