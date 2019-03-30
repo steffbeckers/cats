@@ -29,8 +29,11 @@ services:
       - redis
   redis:
     image: redis
+    entrypoint: redis-server --appendonly yes
     networks:
       - default
+    volumes:
+      - /root/cats/redis/data:/data
   rethinkdb:
     image: rethinkdb
     networks:
