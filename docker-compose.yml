@@ -29,7 +29,7 @@ services:
       - redis
   redis:
     image: redis
-    entrypoint: redis-server --appendonly yes
+    command: redis-server --appendonly yes
     networks:
       - default
     volumes:
