@@ -15,6 +15,6 @@ export default {
       name: ''
     }
   },
-  name: "Home"
+  name: 'Cat'
 };
 </script>

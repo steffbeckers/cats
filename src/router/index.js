@@ -3,7 +3,8 @@ import Router from 'vue-router'
 
 // Pages
 const Home = () => import('@/pages/Home')
-const Cat = () => import('@/pages/Cat')
+const Game = () => import('@/pages/Game')
+// const Cat = () => import('@/pages/Cat')
 
 // Errors
 const Error404 = () => import('@/errors/404')
@@ -14,10 +15,16 @@ export default new Router({
   mode: 'history',
   routes: [
     // Cat
+    // {
+    //   path: '/cat/:id',
+    //   name: 'Cat',
+    //   component: Cat
+    // },
+    // Game
     {
       path: '/:id',
-      name: 'Cat',
-      component: Cat
+      name: 'Game',
+      component: Game
     },
     // Root
     {

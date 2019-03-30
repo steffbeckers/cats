@@ -16,6 +16,9 @@ if (process.env.NODE_ENV === 'production') {
   })
 }
 
+// Auth
+store.dispatch("auth")
+
 // Guards
 // router.beforeEach((to, from, next) => {
 // })
@@ -24,6 +27,9 @@ if (process.env.NODE_ENV === 'production') {
 var token = localStorage.getItem('token')
 if (token) {
   Vue.prototype.$axios.defaults.headers.common['Authorization'] = token
+  
+  // Retrieve me based on token
+  store.dispatch('me');
 }
 
 // Vue's production tip

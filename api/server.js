@@ -4,7 +4,7 @@
 if (process.env.NODE_ENV === "production") {
   require("env2")(".env");
 } else {
-  require("env2")(".env." + process.env.NODE_ENV);
+  require("env2")("api/.env." + process.env.NODE_ENV);
 }
 
 // Hapi
@@ -39,13 +39,13 @@ redisClient.on("error", function (err) {
 
 // Auth - Validation
 const validate = async function (decoded, request) {
-  console.log(">>> DECODED token:");
-  console.log(decoded);
+  // console.log(">>> DECODED token:");
+  // console.log(decoded);
 
   let reply = await redisClient.get(decoded.id);
 
-  console.log('>>> REDIS reply:');
-  console.log(reply);
+  // console.log('>>> REDIS reply:');
+  // console.log(reply);
 
   // Check if session is valid
   let session;
@@ -58,6 +58,9 @@ const validate = async function (decoded, request) {
 
   return { isValid: session.valid === true };
 };
+
+// RethinkDB
+const r = require("rethinkdb");
 
 // Create a server with a host and port
 const server = hapi.server({
@@ -108,13 +111,68 @@ async function init() {
         }
       },
       {
-        method: ['GET','POST'], path: '/restricted', config: { auth: 'jwt' },
+        method: ['GET', 'POST'], path: '/restricted', config: { auth: 'jwt' },
         handler: function(request, reply) {
-          return 'You used a Token!';
+          return true;
         }
       },
       {
-        method: ['GET','POST'], path: "/auth", config: { auth: false },
+        method: ['GET'], path: '/me', config: { auth: 'jwt' },
+        handler: async function(request, reply) {
+          let jwt = request.headers.authorization.split(" ")[1] || request.headers.authorization;
+          let decoded = JWT.decode(jwt, process.env.JWT_SECRET);
+
+          // Retrieve cat from rethinkdb
+          let conn = await r.connect({ db: 'Cats' });
+
+          return await r.table('cats').get(decoded.id).run(conn);
+        }
+      },
+      {
+        method: ['PUT'], path: '/cat', config: { auth: 'jwt' },
+        handler: async function(request, reply) {
+          let jwt = request.headers.authorization.split(" ")[1] || request.headers.authorization;
+          let decoded = JWT.decode(jwt, process.env.JWT_SECRET);
+
+          // Update cat in rethinkdb
+          let conn = await r.connect({ db: 'Cats' });
+          let cat = await r.table('cats').get(decoded.id).update({ ...request.payload, updatedOn: new Date().toISOString() }).run(conn);
+          // console.log('>>> CAT:')
+          // console.log(cat);
+
+          return cat;
+        }
+      },
+      {
+        method: ['POST'], path: '/play', config: { auth: 'jwt' },
+        handler: async function(request, reply) {
+          let jwt = request.headers.authorization.split(" ")[1] || request.headers.authorization;
+          let decoded = JWT.decode(jwt, process.env.JWT_SECRET);
+
+          // Retrieve cat from rethinkdb
+          let conn = await r.connect({ db: 'Cats' });
+          let cat = await r.table('cats').get(decoded.id).run(conn);
+
+          // Create new game in rethinkdb
+          let game = await r.table('games').insert({ cats: [cat] }).run(conn);
+          // console.log('>>> CAT:')
+          // console.log(cat);
+
+          return game;
+        }
+      },
+      {
+        method: ['GET'], path: '/game/{id}', config: { auth: false },
+        handler: async function(request, reply) {
+          // Retrieve game from rethinkdb
+          let conn = await r.connect({ db: 'Cats' });
+          let game = await r.table('games').get(encodeURIComponent(request.params.id)).run(conn);
+
+          return game;
+        }
+      },
+      {
+        method: ['GET', 'POST'], path: "/auth", config: { auth: false },
         handler: async function(request, reply) {
           // Create a new session
           var session = {
@@ -126,6 +184,14 @@ async function init() {
           // Save session in Redis
           await redisClient.set(session.id, JSON.stringify(session));
 
+          // Create cat in rethinkdb
+          let now = new Date();
+          let conn = await r.connect({ db: 'Cats' });
+          await r.table('cats').insert({ id: session.id, createdOn: now.toISOString(), updatedOn: now.toISOString() }).run(conn);
+          // let cat = await r.table('cats').insert({ id: session.id, createdOn: now.toISOString(), updatedOn: now.toISOString() }).run(conn);
+          // console.log('>>> CAT:')
+          // console.log(cat);
+
           // Sign the session as a JWT
           let token = JWT.sign(session, process.env.JWT_SECRET);
 
@@ -133,16 +199,16 @@ async function init() {
         }
       },
       {
-        method: ['GET','POST'], path: "/logout", config: { auth: 'jwt' },
+        method: ['GET', 'POST'], path: "/logout", config: { auth: 'jwt' },
         handler: async function(request, reply) {
-          let jwt = request.headers.authorization.split(" ")[1];
+          let jwt = request.headers.authorization.split(" ")[1] || request.headers.authorization;
           let decoded = JWT.decode(jwt, process.env.JWT_SECRET);
 
           let redisReply = await redisClient.get(decoded.id);
 
           let session = JSON.parse(redisReply);
-          console.log('>>> SESSION:')
-          console.log(session);
+          // console.log('>>> SESSION:')
+          // console.log(session);
 
           // Update the session to no longer valid:
           session.valid = false;
@@ -151,7 +217,7 @@ async function init() {
           // Save session in Redis
           await redisClient.set(session.id, JSON.stringify(session));
 
-          return 'You have been logged out!';
+          return true;
         }
       }
     ]);

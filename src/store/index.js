@@ -13,10 +13,10 @@ export default new Vuex.Store({
     // Auth
     authenticated: localStorage.getItem('token') !== null,
     token: localStorage.getItem('token'),
-    cat: JSON.parse(localStorage.getItem('cat'))
+    cat: JSON.parse(localStorage.getItem('cat')) || {}
   },
   mutations: {
-    authenticate(state, credentials) {
+    auth(state, credentials) {
       // Set state
       state.authenticated = true
       state.token = credentials.token
@@ -31,7 +31,13 @@ export default new Vuex.Store({
       // Set Authorization token on request
       Vue.prototype.$axios.defaults.headers.common['Authorization'] = state.token
     },
-    signOut(state) {
+    me(state, cat) {
+      state.cat = cat
+
+      // Save cat
+      localStorage.setItem('cat', JSON.stringify(cat))
+    },
+    logout(state) {
       // Set state
       state.authenticated = false
       state.token = null
@@ -43,6 +49,54 @@ export default new Vuex.Store({
 
       // Remove Authorization token on header
       delete Vue.prototype.$axios.defaults.headers.common['Authorization']
+    },
+    updateCat(state, cat) {
+      state.cat = cat
+    }
+  },
+  actions: {
+    auth({ commit, state }) {
+      if (state.authenticated) {
+        return;
+      }
+
+      Vue.prototype.$axios
+        .post(process.env.VUE_APP_API + '/auth')
+        .then((response) => {
+          commit('auth', response.data)
+        })
+        .catch(error => {
+          Vue.prototype.$logger.error(error)
+        })
+    },
+    me({ commit }) {
+      Vue.prototype.$axios
+        .get(process.env.VUE_APP_API + '/me')
+        .then((response) => {
+          commit('me', response.data)
+        })
+        .catch(error => {
+          Vue.prototype.$logger.error(error)
+        })
+    },
+    logout({ commit }) {
+      Vue.prototype.$axios
+        .get(process.env.VUE_APP_API + '/logout')
+        .then((response) => {
+          commit('logout', response.data)
+        })
+        .catch(error => {
+          Vue.prototype.$logger.error(error)
+        })
+    },
+    updateCat({ commit }, cat) {
+      Vue.prototype.$axios
+        .put(process.env.VUE_APP_API + '/cat', cat)
+        .then(
+          (cat) => {
+            commit('updateCat', cat)
+          }
+        )
     }
   }
 })
