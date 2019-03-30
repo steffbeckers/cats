@@ -4,7 +4,8 @@
 if (process.env.NODE_ENV === "production") {
   require("env2")(".env");
 } else {
-  require("env2")("api/.env." + process.env.NODE_ENV);
+  // require("env2")("api/.env." + process.env.NODE_ENV);
+  require("env2")(".env." + process.env.NODE_ENV);
 }
 
 // Hapi

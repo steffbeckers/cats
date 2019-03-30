@@ -31,8 +31,6 @@ services:
     image: redis
     networks:
       - default
-    volumes:
-      - /root/cats/redis:/usr/local/etc/redis
   rethinkdb:
     image: rethinkdb
     networks:

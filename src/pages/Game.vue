@@ -1,5 +1,12 @@
 <template>
-  
+  <div>
+    <h1>Cats</h1>
+    <ul>
+      <li v-for="cat in game.cats" :key="cat.id">
+        {{ cat.name }}
+      </li>
+    </ul>
+  </div>
 </template>
 
 <script>
