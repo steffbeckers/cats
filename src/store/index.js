@@ -49,9 +49,6 @@ export default new Vuex.Store({
 
       // Remove Authorization token on header
       delete Vue.prototype.$axios.defaults.headers.common['Authorization']
-    },
-    updateCat(state, cat) {
-      state.cat = cat
     }
   },
   actions: {
@@ -85,7 +82,7 @@ export default new Vuex.Store({
         .put(process.env.VUE_APP_API + '/cat', cat)
         .then((response) => {
           if (response.replaced > 0) 
-            commit('updateCat', cat)
+            commit('me', cat)
         })
     }
   }
