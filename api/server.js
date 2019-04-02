@@ -85,7 +85,8 @@ async function init() {
       options: {
         // prettyPrint: process.env.NODE_ENV !== 'production',
         prettyPrint: true,
-        logEvents: ["response", "onPostStart"]
+        logEvents: ["response", "onPostStart"],
+        level: 'debug'
       }
     });
 
