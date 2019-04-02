@@ -1,11 +1,14 @@
 <template>
   <div>
     <h1>Let's play cat and mouse!</h1>
-    <!-- <p class="link" v-if="$store.state.cat && !$store.state.cat.name" @click="$router.push({ path: '/' + $store.state.cat.id })">What is your cat's name?</p> -->
     <img id="cat" src="@/assets/cat.svg" alt="Cat">
-    <p>What is your cat's name?</p>
-    <input type="text" v-model="cat.name">
-    <button @click="play()">Play</button>
+    <button v-if="!$store.state.authenticated" @click="$store.dispatch('auth')">Login</button>
+    <div v-if="$store.state.authenticated">
+      <p>What is your cat's name?</p>
+      <input type="text" v-model="name">
+      <button @click="play()">Play</button>
+    </div>
+    <button v-if="$store.state.authenticated" @click="$store.dispatch('logout')">Logout</button>
   </div>
 </template>
 
@@ -16,6 +19,7 @@
 
 img#cat {
   max-width: 200px;
+  margin-top: 30px;
 }
 
 button {
@@ -27,9 +31,14 @@ button {
 
 <script>
 export default {
-  data() {
-    return {
-      cat: this.$store.state.cat || {}
+  computed: {
+    name: {
+      get() {
+        return this.$store.state.authenticated && this.$store.state.cat.name || ''
+      },
+      set(name) {
+        this.$store.dispatch('updateCat', { ...this.$store.state.cat, name })
+      }
     }
   },
   methods: {
@@ -39,14 +48,6 @@ export default {
         .then((response) => {
           this.$router.push({ name: 'Game', params: { id: response.data.generated_keys[0] }})
         })
-    }
-  },
-  watch: {
-    cat: {
-      handler: function(newCat) {
-        this.$store.dispatch('updateCat', newCat)
-      },
-      deep: true
     }
   },
   name: 'Home'

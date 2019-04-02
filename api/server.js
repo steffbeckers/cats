@@ -128,7 +128,7 @@ async function init() {
           let decoded = JWT.decode(jwt, process.env.JWT_SECRET);
 
           // Retrieve cat from rethinkdb
-          let conn = await r.connect({ db: 'Cats' });
+          let conn = await r.connect({ db: 'Cats', host: process.env.RETHINKDB_HOST });
 
           return await r.table('cats').get(decoded.id).run(conn);
         }
@@ -140,7 +140,7 @@ async function init() {
           let decoded = JWT.decode(jwt, process.env.JWT_SECRET);
 
           // Update cat in rethinkdb
-          let conn = await r.connect({ db: 'Cats' });
+          let conn = await r.connect({ db: 'Cats', host: process.env.RETHINKDB_HOST });
           let cat = await r.table('cats').get(decoded.id).update({ ...request.payload, updatedOn: new Date().toISOString() }).run(conn);
           // console.log('>>> CAT:')
           // console.log(cat);
@@ -155,7 +155,7 @@ async function init() {
           let decoded = JWT.decode(jwt, process.env.JWT_SECRET);
 
           // Retrieve cat from rethinkdb
-          let conn = await r.connect({ db: 'Cats' });
+          let conn = await r.connect({ db: 'Cats', host: process.env.RETHINKDB_HOST });
           let cat = await r.table('cats').get(decoded.id).run(conn);
 
           // Create new game in rethinkdb
@@ -167,15 +167,29 @@ async function init() {
         }
       },
       {
-        method: ['GET'], path: '/game/{id}', config: { auth: false },
+        method: ['GET'], path: '/games', config: { auth: false },
         handler: async function(request, reply) {
-          // Retrieve game from rethinkdb
-          let conn = await r.connect({ db: 'Cats' });
-          let game = await r.table('games').get(encodeURIComponent(request.params.id)).run(conn);
+          // Retrieve games from rethinkdb
+          let conn = await r.connect({ db: 'Cats', host: process.env.RETHINKDB_HOST });
+          let games = await r.table('games').getAll().run(conn);
 
-          return game;
+          return games;
         }
       },
+      // {
+      //   method: ['GET'], path: '/my/games', config: { auth: 'jwt' },
+      //   handler: async function(request, reply) {
+      //     let jwt = request.headers.authorization.split(" ")[1] || request.headers.authorization;
+      //     let decoded = JWT.decode(jwt, process.env.JWT_SECRET);
+
+      //     // Retrieve game from rethinkdb
+      //     let conn = await r.connect({ db: 'Cats', host: process.env.RETHINKDB_HOST });
+          
+      //     let game = await r.table('games').get(  WHERE CAT ID is decoded.id  ).run(conn);
+
+      //     return game;
+      //   }
+      // },
       {
         method: ['GET', 'POST'], path: "/auth", config: { auth: false },
         handler: async function(request, reply) {
@@ -186,12 +200,14 @@ async function init() {
             exp: new Date().getTime() + 30 * 60 * 1000, // expires in 30 minutes time
           };
 
+          server.logger().info(session);
+
           // Save session in Redis
           await redisClient.set(session.id, JSON.stringify(session));
 
           // Create cat in rethinkdb
           let now = new Date();
-          let conn = await r.connect({ db: 'Cats' });
+          let conn = await r.connect({ db: 'Cats', host: process.env.RETHINKDB_HOST });
           await r.table('cats').insert({ id: session.id, createdOn: now.toISOString(), updatedOn: now.toISOString() }).run(conn);
           // let cat = await r.table('cats').insert({ id: session.id, createdOn: now.toISOString(), updatedOn: now.toISOString() }).run(conn);
           // console.log('>>> CAT:')

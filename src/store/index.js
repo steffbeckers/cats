@@ -65,18 +65,12 @@ export default new Vuex.Store({
         .then((response) => {
           commit('auth', response.data)
         })
-        .catch(error => {
-          Vue.prototype.$logger.error(error)
-        })
     },
     me({ commit }) {
       Vue.prototype.$axios
         .get(process.env.VUE_APP_API + '/me')
         .then((response) => {
           commit('me', response.data)
-        })
-        .catch(error => {
-          Vue.prototype.$logger.error(error)
         })
     },
     logout({ commit }) {
@@ -85,18 +79,14 @@ export default new Vuex.Store({
         .then((response) => {
           commit('logout', response.data)
         })
-        .catch(error => {
-          Vue.prototype.$logger.error(error)
-        })
     },
     updateCat({ commit }, cat) {
       Vue.prototype.$axios
         .put(process.env.VUE_APP_API + '/cat', cat)
-        .then(
-          (cat) => {
+        .then((response) => {
+          if (response.replaced > 0) 
             commit('updateCat', cat)
-          }
-        )
+        })
     }
   }
 })
