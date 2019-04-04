@@ -3,6 +3,5 @@ import VueSocketIO from 'vue-socket.io';
 
 Vue.use(new VueSocketIO({
   debug: process.env.NODE_ENV !== 'production',
-  connection: process.env.VUE_APP_API,
-  options: { path: "/io/" }
+  connection: process.env.VUE_APP_SOCKETIO
 }))
