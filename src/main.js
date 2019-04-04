@@ -5,6 +5,7 @@ import store from './store'
 import router from './router'
 import './plugins/logger'
 import './plugins/axios'
+import './plugins/socketio'
 import VueAnalytics from 'vue-analytics'
 import './plugins/service-worker'
 
@@ -16,21 +17,24 @@ if (process.env.NODE_ENV === 'production') {
   })
 }
 
-// Auth
-store.dispatch("auth")
-
-// Guards
-// router.beforeEach((to, from, next) => {
-// })
-
 // Set Authorization header, if token exists
 var token = localStorage.getItem('token')
 if (token) {
   Vue.prototype.$axios.defaults.headers.common['Authorization'] = token
-  
-  // Retrieve me based on token
-  store.dispatch('me');
 }
+
+// Auth
+store.dispatch("auth")
+
+// Guards
+router.beforeEach((to, from, next) => {
+  // Retrieve me based on token
+  if (store.state.authenticated) {
+    store.dispatch('me')
+  }
+
+  next()
+})
 
 // Vue's production tip
 Vue.config.productionTip = false
