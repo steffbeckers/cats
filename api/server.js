@@ -171,7 +171,7 @@ async function init() {
           let cat = await r.table('cats').get(decoded.id).run(conn);
 
           // Create new game in rethinkdb
-          let game = await r.table('games').insert({ cats: [cat] }).run(conn);
+          let game = await r.table('games').insert({ cats: [{...cat, score: 0}] }).run(conn);
 
           // console.log('>>> CAT:')
           // console.log(cat);
@@ -196,10 +196,39 @@ async function init() {
 
           // Add cat to game
           let updatedGame = {...game};
-          updatedGame.cats.push(cat);
+          updatedGame.cats.push({...cat, score: 0});
           
           // Update game in rethinkdb
           var update = await r.table('games').get(game.id).update({ cats: updatedGame.cats }).run(conn);
+
+          if (update.replaced) {
+            return updatedGame;
+          }
+
+          return game;
+        }
+      },
+      {
+        method: ['POST'], path: '/game/{id}/score', config: { auth: 'jwt' },
+        handler: async function(request, reply) {
+          // Retrieve game from rethinkdb
+          let game = await r.table('games').get(encodeURIComponent(request.params.id)).run(conn);
+          if (!game) { return false; }
+
+          let jwt = request.headers.authorization.split(" ")[1] || request.headers.authorization;
+          let decoded = JWT.decode(jwt, process.env.JWT_SECRET);
+
+          // Retrieve cat from rethinkdb
+          let cat = await r.table('cats').get(decoded.id).run(conn);
+
+          // Increment score of cat
+          let updatedGame = {...game};
+          let catIds = updatedGame.cats.map((c) => { return c.id; });
+          let index = catIds.indexOf(cat.id);
+          updatedGame.cats[index].score = updatedGame.cats[index].score + 1;
+          
+          // Update game in rethinkdb
+          var update = await r.table('games').get(game.id).update(updatedGame).run(conn);
 
           if (update.replaced) {
             return updatedGame;

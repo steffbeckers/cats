@@ -21,9 +21,9 @@ services:
     networks:
       - reverse-proxy_default
       - default
-    deploy:
-      mode: replicated
-      replicas: 2
+    # deploy:
+    #   mode: replicated
+    #   replicas: 2
     depends_on:
       - rethinkdb
       - redis
