@@ -1,6 +1,6 @@
 <template>
   <div v-if="game">
-    <p>Connected: {{ isConnected }}</p>
+    <p>Connected: {{ $store.state.connected }}</p>
     <p>Test: {{ game.test || false }}</p>
     <button v-if="joinable" @click="joinGame()">Join game</button>
     <ul v-if="game.cats">
@@ -15,17 +15,7 @@
 export default {
   data() {
     return {
-      isConnected: false,
       game: null
-    }
-  },
-  sockets: {
-    connect() {
-      this.isConnected = true;
-    },
-
-    disconnect() {
-      this.isConnected = false;
     }
   },
   computed: {

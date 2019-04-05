@@ -24,7 +24,7 @@ if (token) {
 }
 
 // Auth
-store.dispatch("auth")
+store.dispatch('auth')
 
 // Guards
 router.beforeEach((to, from, next) => {

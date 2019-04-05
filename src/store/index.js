@@ -13,7 +13,9 @@ export default new Vuex.Store({
     // Auth
     authenticated: localStorage.getItem('token') !== null,
     token: localStorage.getItem('token'),
-    cat: JSON.parse(localStorage.getItem('cat')) || {}
+    cat: JSON.parse(localStorage.getItem('cat')) || {},
+    // Socket.io
+    connected: false
   },
   mutations: {
     auth(state, credentials) {
@@ -49,6 +51,13 @@ export default new Vuex.Store({
 
       // Remove Authorization token on header
       delete Vue.prototype.$axios.defaults.headers.common['Authorization']
+    },
+    // Socket.io
+    SOCKETIO_CONNECT(state) {
+      state.connected = true
+    },
+    SOCKETIO_DISCONNECT(state) {
+      state.connected = false
     }
   },
   actions: {
