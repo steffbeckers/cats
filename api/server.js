@@ -173,6 +173,9 @@ async function init() {
           // Create new game in rethinkdb
           let game = await r.table('games').insert({ cats: [{...cat, score: 0}] }).run(conn);
 
+          // Update last gameId to cat
+          cat = await r.table('cats').get(decoded.id).update({ gameId: game.generated_keys[0] }).run(conn);
+
           // console.log('>>> CAT:')
           // console.log(cat);
 
@@ -197,7 +200,7 @@ async function init() {
           // Add cat to game
           let updatedGame = {...game};
           updatedGame.cats.push({...cat, score: 0});
-          
+
           // Update game in rethinkdb
           var update = await r.table('games').get(game.id).update({ cats: updatedGame.cats }).run(conn);
 

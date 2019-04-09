@@ -17,10 +17,11 @@
 <style lang="scss">
   aside {
     position: fixed;
+    z-index: 2;
     top: 0;
     left: 0;
 
-    color: #ffffff;
+    color: #000000;
     padding: 20px;
 
     ul {
@@ -37,7 +38,7 @@
 </style>
 
 <script>
-import Animation1 from '../components/Animation1';
+import Animation1 from '../components/animation-1/Animation1';
 
 export default {
   components: {
